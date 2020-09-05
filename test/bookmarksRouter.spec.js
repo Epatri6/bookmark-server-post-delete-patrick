@@ -3,6 +3,7 @@ const supertest = require('supertest');
 
 const app = require('../src/app');
 const { makeBookmarksArray } = require('./bookmarks.fixtures');
+const { expect } = require('chai');
 
 
 describe('Bookmarks Endpoints', () => {
@@ -34,6 +35,45 @@ describe('Bookmarks Endpoints', () => {
         .set({ Authorization: `Bearer ${process.env.API_TOKEN}` })
         .expect(404, {'message': 'Bookmark not found'});
     });
+
+    it('Creates a new bookmark', () => {
+      const newData = {
+        title: 'Rawrrawr',
+        url: 'https://google.com',
+        description: 'eh',
+        rating: 3
+      }
+      const expected = {
+        ...newData,
+        id: 1
+      }
+      return supertest(app)
+      .post('/bookmarks')
+      .set({Authorization: `Bearer ${process.env.API_TOKEN}`})
+      .send(newData)
+      .expect(201)
+      .expect(res => {
+        expect(res.headers.location).to.eql(`/bookmarks/${expected.id}`)
+        expect(res).to.eql(expected);
+        return supertest(app).get(`/bookmarks/${res.id}`).expect(expected);
+      });
+    });
+
+    const fields = ['title', 'url', 'rating'];
+    const newData = {
+      title: 'Facebook',
+      url: 'https://facebook.com',
+      rating: 3
+    }
+    fields.forEach(field => {
+      it(`fails to create bookmark with invalid ${field}`, () => {
+        newData[field] = '';
+        return supertest(app).post('/bookmarks')
+        .set({Authorization: `Bearer ${process.env.API_TOKEN}`})
+        .send(newData)
+        .expect(400);
+      })
+    })
   });
 
   context('Given "bookmarks" has data in the table', () => {
@@ -54,6 +94,20 @@ describe('Bookmarks Endpoints', () => {
         .get(`/bookmarks/${id}`)
         .set({ Authorization: `Bearer ${process.env.API_TOKEN}` })
         .expect(200, testBookmarks[id - 1])
+    });
+
+    it('fails to delete non existant bookmark', () => {
+      const id = 15;
+      return supertest(app).delete(`/bookmarks/${id}`)
+      .set({Authorization: `Bearer ${process.env.API_TOKEN}`})
+      .expect(404, {message: 'Bookmark not found'});
+    })
+
+    it('deletes a bookmark', () => {
+      const id = 1;
+      return supertest(app).delete(`/bookmarks/${id}`)
+      .set({Authorization: `Bearer ${process.env.API_TOKEN}`})
+      .expect(204);
     });
   });
 });
