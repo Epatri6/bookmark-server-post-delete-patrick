@@ -45,6 +45,7 @@ describe('Bookmarks Endpoints', () => {
       }
       const expected = {
         ...newData,
+        rating: '3',
         id: 1
       }
       return supertest(app)
@@ -54,7 +55,7 @@ describe('Bookmarks Endpoints', () => {
       .expect(201)
       .expect(res => {
         expect(res.headers.location).to.eql(`/bookmarks/${expected.id}`)
-        expect(res).to.eql(expected);
+        expect(res.body).to.eql(expected);
         return supertest(app).get(`/bookmarks/${res.id}`).expect(expected);
       });
     });
@@ -67,10 +68,13 @@ describe('Bookmarks Endpoints', () => {
     }
     fields.forEach(field => {
       it(`fails to create bookmark with invalid ${field}`, () => {
-        newData[field] = '';
+        const testData = {
+          ...newData
+        };
+        testData[field] = '';
         return supertest(app).post('/bookmarks')
         .set({Authorization: `Bearer ${process.env.API_TOKEN}`})
-        .send(newData)
+        .send(testData)
         .expect(400);
       })
     })

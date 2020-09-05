@@ -8,14 +8,18 @@ const BookmarksService = {
   },
 
   postBookmark(knex, bookmark) {
-    return knex.insert(bookmark).into('bookmarks').then(row => {
-      return row[0];
-    })
+    return knex
+      .insert(bookmark)
+      .into('bookmarks')
+      .returning('*')
+      .then((row) => {
+        return row[0];
+      });
   },
 
   deleteBookmark(knex, id) {
-    return knex.delete('bookmarks').where({id});
-  }
+    return knex('bookmarks').where({ id }).delete();
+  },
 };
 
 module.exports = BookmarksService;

@@ -57,10 +57,11 @@ bookmarksRouter
       description: xss(description),
       rating,
     };
-    BookmarksService.postBookmark(req.app.get('db'), newBookmark)
-    .then(result => {
-      return res.location(`/bookmarks/${result.id}`).status(201).json(result);
-    });
+    BookmarksService.postBookmark(req.app.get('db'), newBookmark).then(
+      (result) => {
+        return res.location(`/bookmarks/${result.id}`).status(201).json(result);
+      }
+    );
   });
 
 bookmarksRouter
@@ -82,16 +83,14 @@ bookmarksRouter
   .delete((req, res) => {
     const { id } = req.params;
 
-    BookmarksService.getBookmark(req.app.get('db'), id)
-    .then(bookmark => {
-      if(!bookmark) {
-        return res.status(404).json({message: 'Bookmark not found'});
+    BookmarksService.getBookmark(req.app.get('db'), id).then((bookmark) => {
+      if (!bookmark) {
+        return res.status(404).json({ message: 'Bookmark not found' });
       }
-      BookmarksService.deleteBookmark(req.app.get('db'), id)
-      .then(() => {
+      BookmarksService.deleteBookmark(req.app.get('db'), id).then(() => {
         return res.status(204).end();
       });
-    })
+    });
   });
 
 module.exports = bookmarksRouter;
